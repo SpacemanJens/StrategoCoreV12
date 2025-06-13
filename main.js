@@ -453,9 +453,9 @@ function prepareImages() {
 }
 
 function preload() {
-    partyConnect( 
+    partyConnect(
         "wss://p5js-spaceman-server-29f6636dfb6c.herokuapp.com",
-        "jkv-strategoCoreV12",
+        "jkv-strategoCoreV12c",
         room
     );
 
@@ -576,6 +576,7 @@ function draw() {
                 w: 200,
                 h: 40
             };
+
             firstRun = false;
             return;
         }
@@ -674,13 +675,17 @@ function draw() {
                 push();
                 drawCharacterListAndInfo();
                 pop()
-                drawCharacterLegend();
+                drawCharacterLegend(); 
                 drawGameSetup();
                 drawInteractiveHowToPlay();
                 break;
             case "IN-GAME":
                 displayTwoPlayersWithTheSamePlayerNumber()
-                selectedPlanet = solarSystem.planets[me.planetIndex];
+
+                if (!me.hasCharacter) {
+                    spawnNextToCoreCommand()
+                }
+                
                 if (!selectedPlanet) return
 
                 activeCharacters = spacecrafts.filter(c => c.hasCharacter);
@@ -709,6 +714,8 @@ function draw() {
                 handleBulletMovement();
                 checkCollisionsWithWarpGate();
                 checkBulletCollisions()
+                drawNavigationInstruction()
+
                 break;
             case "GAME-FINISHED":
                 selectedPlanet = solarSystem.planets[me.planetIndex];
@@ -731,6 +738,18 @@ function draw() {
     displayHostName();
 }
 
+function drawNavigationInstruction() {
+
+    // Draw timer with larger text
+    push();
+    textSize(12);
+    // Change color to red if less than 1 minute remains
+    fill(200);
+    textAlign(LEFT, TOP);
+    text(`Navigate using the keys WASD `, GAME_AREA_RIGHT - 180, 10);
+    text(`Push SPACE to toggle minimap on/off `, GAME_AREA_RIGHT - 180, 30);
+    pop();
+}
 function drawHowToPlay() {
 
     push();
@@ -1236,7 +1255,7 @@ function drawGameAreaBackground2() {
     textAlign(RIGHT, BOTTOM);
     textSize(16);
     text(`${colorScheme.name}`,
-        GAME_AREA_X + GAME_AREA_WIDTH_NEW ,
+        GAME_AREA_X + GAME_AREA_WIDTH_NEW,
         GAME_AREA_Y + GAME_AREA_HEIGHT_NEW - 10);
     pop();
 }
@@ -1351,7 +1370,7 @@ function drawStatusMessages() {
             const opponentCharacterId = myCharacterData.battleInfo.id || '??';
             const myCharacterName = myCharacterData.battleInfo.myName || '??';
             const myCharacterId = myCharacterData.battleInfo.myId || '??';
-            outcomeMsg = `You were a ${myCharacterName}(${myCharacterId}) and ${myCharacterData.battleOutcomeResult} a battle vs a ${opponentCharacterName}(${opponentCharacterId}) - ${opponentPlayerName})`;
+            outcomeMsg = `You were a ${myCharacterName}(${myCharacterId}) and ${myCharacterData.battleOutcomeResult} a battle vs a ${opponentCharacterName}(${opponentCharacterId}) - ${opponentPlayerName}`;
         } else {
             outcomeMsg = `${myCharacterData.battleOutcomeResult}`;
         }
@@ -2044,6 +2063,7 @@ function mousePressed() {
     // Character Selection Logic
     if (me.isReady && !me.hasCharacter) {
         handleCharacterSelection();
+        return
     }
 
     const myCharacterData = shared.characterList.find(c => c.instanceId === me.characterInstanceId);
@@ -2152,9 +2172,10 @@ function spawnNextToCoreCommand() {
             me.planetIndex = coreCommandPlayer.planetIndex;
             me.xLocal = coreCommandPlayer.xLocal;
             me.yLocal = coreCommandPlayer.yLocal;
+            me.bullets = []; // Reset bullets on spawn
 
             if (me.planetIndex !== -1 && solarSystem && solarSystem.planets[me.planetIndex]) {
-                selectedPlanet = solarSystem.planets[me.planetIndex];
+                selectedPlanet = solarSystem.planets[me.planetIndex]; 
             } else {
                 console.warn(`SpawnNextToCoreCommand: Core Command player ${coreCommandPlayer.playerName} has invalid planetIndex ${me.planetIndex}. Falling back to default spawn.`);
                 setSpawnLocation(); // Fallback if planetIndex is invalid
@@ -2333,13 +2354,15 @@ function handlePlayerLoss() {
     me.characterId = null;
     me.characterRank = null;
     me.characterName = null;
-    me.planetIndex = -1;
+    //me.planetIndex = -1;
     me.status = 'lost'; // Intermediate status
-    if (me.team === 'blue') {
-        me.planetIndex = planetIndexBlue;
-    } else {
-        me.planetIndex = planetIndexGreen;
-    }
+    /*
+       if (me.team === 'blue') {
+           me.planetIndex = planetIndexBlue;
+       } else {
+           me.planetIndex = planetIndexGreen;
+       }
+           */
 }
 
 function resetClientState() {
@@ -2542,13 +2565,12 @@ function handleGameInProgressHost() {
     // Move canon towers, bullets, check collisions and sync to shared object 
     updateCanonTowers()
 
-    // Check for disconnected Core Command
-    checkIfCoreCommandDisconnected()
+    // Detect collisions and initiate battles
+    detectCollisionsAndInitiateBattles();
+    checkWinConditions();
 
     if (shared.gameState !== "GAME-FINISHED") {
-        // Detect collisions and initiate battles
-        detectCollisionsAndInitiateBattles();
-        checkWinConditions();
+        checkIfCoreCommandDisconnected()
     }
 }
 

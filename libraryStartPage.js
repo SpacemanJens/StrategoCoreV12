@@ -25,14 +25,14 @@ function drawRulesSection() {
         "a spacecraft ready to explore and conquer these strange worlds.  \n" +
         "(Note: Hover the images when the images have been loaded.) \n\n" +
 
-        "The optimal number of players are between 5 and 10 on each team. Start \n" +
-        "with a group call including all players (from both teams). The game \n" +
+        "The optimal number of players are between 5 and 10 on each team (max 15). \n" +
+        "Start with a group call including all players (from both teams). The game \n" +
         "organizer can share the screen to ensure that all players have selected \n" +
         "the correct team and to agree on how long time to play for. Rules and\n" +
         "instructions are available after selecting a team. When you are ready \n" +
         "to start the game (each team must choose a Core Commander) then each\n" +
         "team can have a group call to coordinate strategy. Also please use your\n" +
-        "real first names. (Use a large HD screen and a Chrome browser.) \n\n" +
+        "real first names. (Use a large HD screen to get the best experience) \n\n" +
         "Have fun. You will need it! Game by Jens Valdez\n";
 
     text(rules, centerX + 100, centerY + 75);
@@ -127,7 +127,7 @@ class Jellyfish {
             // Move the jellyfish
             this.x -= currentXSpeed;
             this.y -= currentYSpeed;
-
+ 
             // Increase speed over time
             this.speedMultiplier += this.acceleration;
 

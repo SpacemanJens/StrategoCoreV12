@@ -100,7 +100,7 @@ function drawWarpGatesOnGameArea() {
 
 function checkCollisionsWithWarpGate() {
     if (!selectedPlanet) {
-        return;
+        return; 
     }
 
     const currentTime = millis();
@@ -115,6 +115,7 @@ function checkCollisionsWithWarpGate() {
     if (di < selectedPlanet.diameterWarpGate / 2) {
         isWarpingUp = true;
         me.lastWarpTime = currentTime;
+        me.bullets = []; // Clear bullets when warping
 
         if (me.planetIndex === 4) { 
             me.planetIndex = 0;
@@ -123,6 +124,8 @@ function checkCollisionsWithWarpGate() {
         }
         me.xLocal = solarSystem.planets[me.planetIndex].xWarpGateUp;
         me.yLocal = solarSystem.planets[me.planetIndex].yWarpGateUp;
+
+        selectedPlanet = solarSystem.planets[me.planetIndex];
 
         return;
     }
@@ -141,6 +144,9 @@ function checkCollisionsWithWarpGate() {
         }
         me.xLocal = solarSystem.planets[me.planetIndex].xWarpGateDown;
         me.yLocal = solarSystem.planets[me.planetIndex].yWarpGateDown;
+
+        selectedPlanet = solarSystem.planets[me.planetIndex];
+
         return;
     }
 } 
